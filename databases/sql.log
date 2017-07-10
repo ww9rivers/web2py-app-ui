@@ -1,0 +1,9 @@
+timestamp: 2013-03-16T16:30:51.406250
+CREATE TABLE js(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(128),
+    version CHAR(16),
+    updated TIMESTAMP,
+    js BLOB
+);
+success!

@@ -1,0 +1,36 @@
+<messagebundle>
+  <msg name="bgcolor">&#x80CC;&#x666F;&#x8272;</msg>
+  <msg name="aqua">&#x6C34;&#x84DD;</msg>
+  <msg name="black">&#x9ED1;</msg>
+  <msg name="green">&#x7EFF;</msg>
+  <msg name="blue">&#x84DD;</msg>
+  <msg name="gray">&#x7070;</msg>
+  <msg name="lime">&#x67E0;&#x6AAC;</msg>
+  <msg name="orange">&#x6A59;</msg>
+  <msg name="pink">&#x7C89;&#x7EA2;</msg>
+  <msg name="purple">&#x7D2B;</msg>
+  <msg name="red">&#x7EA2;</msg>
+  <msg name="transparent">&#x900F;&#x660E;</msg>
+  <msg name="white">&#x767D;</msg>
+  <msg name="yellow">&#x9EC4;</msg>
+  <msg name="groupid">&#x7EC4;&#x53F7;</msg>
+  <msg name="apikey">API Key</msg>
+  <msg name="tags">&#x6807;&#x7B7E;</msg>
+  <msg name="photosize">&#x56FE;&#x7247;&#x5C3A;&#x5BF8;</msg>
+  <msg name="auto">&#x81EA;&#x52A8;&#x9009;&#x62E9;</msg>
+  <msg name="square">&#x65B9;&#x683C;</msg>
+  <msg name="thumbnail">&#x5FAE;&#x7F29;</msg>
+  <msg name="small">&#x5C0F;&#x53F7;</msg>
+  <msg name="medium">&#x4E2D;&#x53F7;</msg>
+  <msg name="original">&#x539F;&#x4EF6;</msg>
+  <msg name="order">顺序</msg>
+  <msg name="random">随机</msg>
+  <msg name="refresh_seconds">&#x5237;&#x65B0;&#xFF08;&#x79D2;&#xFF09;</msg>
+  <msg name="noimg">&#x6839;&#x636E;&#x5F53;&#x524D;&#x8BBE;&#x7F6E;&#x6CA1;&#x80FD;&#x627E;&#x5230;&#x56FE;&#x7247;&#x3002;</msg>
+  <msg name="nokey">&#x6CA1;&#x627E;&#x5230; Flickr API Key&#x3002;</msg>
+  <msg name="stop">&#x65E0;&#x6CD5;&#x7EE7;&#x7EED;&#x8FD0;&#x884C;&#x3002;&#x8BF7;&#x786E;&#x8BA4;&#x8BBE;&#x7F6E;&#xFF0C;&#x7136;&#x540E;&#x5237;&#x65B0;&#x663E;&#x793A;&#x3002;</msg>
+  <msg name="info">照片资料</msg>
+  <msg name="next">下一张</msg>
+  <msg name="prev">上一张</msg>
+  <msg name="top">上边留白</msg>
+</messagebundle>

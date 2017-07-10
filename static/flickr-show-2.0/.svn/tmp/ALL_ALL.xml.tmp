@@ -1,0 +1,36 @@
+<messagebundle>
+  <msg name="bgcolor">Background Color</msg>
+  <msg name="aqua">Aqua</msg>
+  <msg name="black">Black</msg> 
+  <msg name="green">Green</msg> 
+  <msg name="blue">Blue</msg> 
+  <msg name="gray">Gray</msg> 
+  <msg name="lime">Lime</msg>
+  <msg name="orange">Orange</msg>
+  <msg name="pink">Pink</msg>
+  <msg name="purple">Purple</msg> 
+  <msg name="red">Red</msg> 
+  <msg name="transparent">Transparent</msg> 
+  <msg name="white">White</msg>
+  <msg name="yellow">Yellow</msg>
+  <msg name="groupid">Group ID</msg>
+  <msg name="apikey">API Key</msg>
+  <msg name="tags">Tags</msg>
+  <msg name="photosize">Photo Size</msg>
+  <msg name="auto">Auto</msg>
+  <msg name="square">Square</msg>
+  <msg name="thumbnail">Thumbnail</msg>
+  <msg name="small">Small</msg>
+  <msg name="medium">Medium</msg>
+  <msg name="original">Original</msg>
+  <msg name="order">Order</msg>
+  <msg name="random">Random</msg>
+  <msg name="refresh_seconds">Refresh (seconds)</msg>
+  <msg name="noimg">No image found on Flickr with given configuration.</msg>
+  <msg name="nokey">Flickr API Key is not configured.</msg>
+  <msg name="stop">This gadget will stop now. Please check configuration and reload.</msg>
+  <msg name="info">Photo info</msg>
+  <msg name="next">Next Photo</msg>
+  <msg name="prev">Previous Photo</msg>
+  <msg name="top">Top Margin</msg>
+</messagebundle>

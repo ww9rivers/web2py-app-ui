@@ -1,0 +1,498 @@
+// Copyright (c) 2011, Wei Wang. All rights reserved.
+// License: Refer to license_en.txt file.
+;var c9r =				// Private namespace
+{
+    img:	null,			//	Current image object
+    key:	false,			//	prefs.mykey
+    page:	1,			//	Current page, start at 1
+    perpage:	50,			//	Number of items per page
+    cx:		-1,			//	Current photo index: -1 == No photo yet
+    cp:		false,			//	Current photo object
+    dp:		0,			//	Photo on display
+    cp_retry:	0,			//	Number of retries on current photo
+    div:	false,			//	Container for the photos
+    tags:	"",			//	Tags for photo searching
+    width:	0,			//	Width of the container
+    height:	0,			//	Height of the container
+    top:	0,			//	Top margin for image
+    p:		0,			//	Userprefs
+    pages:	0,			//	Total number of pages
+    total:	0,			//	Total number of photos
+    photo:	[],			//	Current photo set
+    pace:	0,			//	Userprefs.pace
+    last:	0,			//	When the last photo was displayed
+    paused:	false,			//	True if mouse pointer is in
+    monitored:	undefined,		//	ID of setTimeout() for c9r.monitor()
+    pending:	0,			//	Number of image pending to display (0/1 for now)
+    cycle:	0,			//	Number of cycles skipped
+    loading:	0,			//	Time when loading started
+    altext:	0,			//	Text for 'alt' in <img>
+    button_set:	{},			//	Overlay button set
+    is_gadget:	false,			//	Set to true if running as a Google Gadget
+
+
+    //	Stop the slide show when error occurs.
+    alert_stop: function (msg)
+    {
+	var xmsg = c9r.p.getMsg(msg);
+	c9r.div.html((xmsg || msg)+"<br><br>"+c9r.p.getMsg("stop"));
+	clearTimeout(c9r.monitored);	
+    },
+
+
+    //	Entry point of flickr-show -- registered to run in flickr-show.xml's <content> section.
+    flickr_show: function ()
+    {
+	jQuery("<style type='text/css'>\
+		a:link		{ color: #ececec; text-decoration: none; }\
+		a:active	{ color: red; }\
+		a:visited	{ color: #f0f0f0; text-decoration: none; }\
+		a:hover		{ color: #f0f0f0; text-decoration: underline; }\
+		.c9r_desc	{\
+			background-color: #202020;\
+			opacity:	0.8;\
+			color:		#ececec;\
+			text-align:	left;\
+			margin:		20px;\
+			padding:	1em;\
+			position:	absolute;\
+			left:		10px;\
+			top:		60px;\
+			width:		60%;\
+			height:		50%;\
+			z-index:	3;\
+		}	</style>").appendTo("head");
+	c9r.is_gadget = (typeof gadgets == "object");
+	c9r.p = (c9r.is_gadget ? new gadgets.Prefs() :
+	{
+		msglist:	// Language supporting message table in the gadget
+		{
+			bgcolor:	"Background Color",
+			aqua:		"Aqua",
+			black:		"Black", 
+			green:		"Green", 
+			blue:		"Blue", 
+			gray:		"Gray", 
+			lime:		"Lime",
+			orange:		"Orange",
+			pink:		"Pink",
+			purple:		"Purple", 
+			red:		"Red", 
+			transparent:	"Transparent", 
+			white:		"White",
+			yellow:		"Yellow",
+			groupid:	"Group ID",
+			apikey:		"API Key",
+			tags:		"Tags",
+			photosize:	"Photo Size",
+			auto:		"Auto",
+			square:		"Square",
+			thumbnail:	"Thumbnail",
+			small:		"Small",
+			medium:		"Medium",
+			original:	"Original",
+			order:		"Order",
+			random:		"Random",
+			refresh_seconds:"Refresh (seconds)",
+			noimg:		"No image found on Flickr with given configuration.",
+			nokey:		"Flickr API Key is not configured.",
+			stop:		"This gadget will stop now. Please check configuration and reload.",
+			info:		"Photo info",
+			next:		"Next Photo",
+			prev:		"Previous Photo"
+		},
+
+		getMsg: function(xk)	{ return c9r.p.msglist[xk]; },
+		getInt: function(xk)	{ return +c9r.conf[xk]; },
+		getString: function(xk)	{ return c9r.conf[xk]; }
+
+	});
+	if (!(c9r.key = c9r.get_pref("mykey")))
+	{
+		c9r.alert_stop("nokey");
+		return;
+	}
+
+	if (c9r.get_pref("myorder"))
+	{
+		c9r.next = c9r.next_order;
+		c9r.button_set.prev = { icon: "ui-icon-seek-prev", left: "58px",
+				fn: function () { c9r.load_one(c9r.prev_order); } };
+		c9r.button_set.next = { icon: "ui-icon-seek-next", left: "100px",
+				fn: function () { c9r.load_one(c9r.next_order); } };
+	}
+	c9r.button_set.info = { icon: "ui-icon-info", fn: c9r.get_info, left: "10px" };
+
+	c9r.tags = encodeURI(c9r.get_pref("mytags"));
+	c9r.div = jQuery("#c9rFlickrShow");
+	c9r.div.parent().css("background-color", c9r.get_pref("mycolor"));
+	c9r.width = c9r.div.width();
+	c9r.height = c9r.div.height();
+	if ((c9r.pace = c9r.p.getInt("mypace")*1000) < 1000)
+	{
+		c9r.pace = 10000;
+	}
+	c9r.last = c9r.now() - c9r.pace;
+	c9r.get_photo_page();
+
+	c9r.div.css("cursor", "crosshair").hover(c9r.mouse_in, c9r.mouse_out);
+    },
+
+
+    //	Remote call to a Flickr service API function and get result in JSON.
+    flickr_json: function (uri, xf, params)
+    {
+	if (params == undefined) { params = {}; }
+	var url = "http://api.flickr.com/services/rest/?format=json&nojsoncallback=1&"+uri;
+	if (c9r.is_gadget)
+	{
+		params[gadgets.io.RequestParameters.CONTENT_TYPE] = gadgets.io.ContentType.JSON;
+		gadgets.io.makeRequest(url, xf, params);
+	}
+	else
+	{
+		jQuery.post(url, params, xf, "json");
+	}
+    },
+
+
+    flickr_json_photo: function (method, xp, xf)
+    {
+	c9r.flickr_json("method=flickr.photos."+method+"&api_key="+c9r.key+"&photo_id="+xp.id, xf);
+    },
+
+
+    get_info: function ()
+    {
+	jQuery("#c9r-info").button("disable");
+	c9r.flickr_json_photo("getInfo", c9r.dp, c9r.show_photo_info);
+    },
+
+
+    //	Find the given page of photos from Flickr.
+    get_photo_page: function ()
+    {
+	var uri = "method=flickr.photos.search&nojsoncallback=1&api_key=" + c9r.key
+	    + "&tags=" + c9r.tags
+	    + "&tag_mode=all&privacy_filter=1&safe_search=1&per_page=" + c9r.perpage;
+	var grp = c9r.get_pref("mygroup");
+
+	if (grp) { uri += "&group_id=" + grp; }
+	uri += "&page="+c9r.page;
+	c9r.flickr_json(uri, c9r.get_photo_size);
+    },
+
+
+    //	Receive size information for the given set of photos.
+    get_photo_size: function (xobj)
+    {
+	var msg = "", res;
+
+	try
+	{
+		res = c9r.is_gadget ? xobj.data.photos : xobj.photos;
+		if (c9r.pages < res.pages) { c9r.pages = res.pages; }
+		if (c9r.total < res.total) { c9r.total = res.total; }
+		jQuery.merge(c9r.photo, res.photo);
+		if (c9r.total < 1) { msg = "noimg"; }
+	}
+	catch (err)
+	{
+		msg = ("errors" in xobj) ? xobj.errors[0] : "noimg";
+	}
+
+	if (msg != "")
+	{
+		if (c9r.photo.length == 0) { c9r.alert_stop(msg); }
+		return;
+	}
+
+	if (c9r.cx < 0)	// Start the slide show if needed.
+	{
+		c9r.select_photo();
+		c9r.monitor();
+	}
+
+	//	Get the next page of photos.
+	if (c9r.page < c9r.pages)
+	{
+		c9r.page++;
+		c9r.get_photo_page();
+	}
+    },
+
+
+    get_pref: function (xarg)
+    {
+	return c9r.p.getString(xarg);
+    },
+
+
+    //	Load currently selected photo.
+    load_current_photo: function ()
+    {
+	if (++c9r.cp_retry > 3)
+	{
+		c9r.select_photo();
+		return;
+	}
+	c9r.flickr_json_photo("getSizes", c9r.cp, c9r.load_photo);
+    },
+
+
+    //	Find the next photo in order according to a given function 
+    load_next_photo: function (nextfn)
+    {
+	while (true)
+	{
+		var xp = c9r.photo[nextfn()];
+		if (xp != undefined) break;
+	}
+	c9r.cp = xp;
+	c9r.cp_retry = 0;
+	c9r.load_current_photo();
+    },
+
+
+    load_one: function (nextfn)
+    {
+	c9r.paused = false;
+	c9r.cycle = 1;
+	c9r.load_next_photo(nextfn);
+	jQuery("#c9r-info").button("enable");
+    },
+
+
+    //	Determin the image to load based on gadget size, preload the image.
+    load_photo: function (xobj)
+    {
+	try
+	{
+		var xo = c9r.is_gadget ? xobj.data.sizes.size : xobj.sizes.size;
+	}
+	catch (err)	// Retry!
+	{
+		c9r.load_current_photo();
+		return;
+	}
+
+	var label = c9r.get_pref("mysize");
+	var src, dim, val;
+	var top = 0;
+	var xh, xw = "";
+
+	for (var xi in xo) {	// Pick source in appropriate size
+	    var xs = xo[xi];
+	    src = xs.source;
+	    if (label == "Auto") {
+		xw = xs.width / c9r.width;
+		xh = xs.height / c9r.height;
+		if (xw < 1 && xh < 1) { continue; }
+		if (xw > xh)
+		{
+			dim = "width";
+			val = Math.min(c9r.width, xs.width);
+			top = Math.floor((c9r.height-xs.height/xw)/2)+"px";
+		}
+		else
+		{
+			dim = "height";
+			val = c9r.height;
+		}
+		break;
+	    } else if (xs.label == label) { break; }
+	}
+
+	if (!dim)
+	{
+		dim = "width";
+		val = xs.width;
+		top = Math.floor((c9r.height-xs.height)/2)+"px";
+	}
+
+	// http://jquery-howto.blogspot.com/2009/02/preload-images-with-jquery.html
+	c9r.altext = c9r.cx+":"+c9r.cp.owner+"/"+c9r.cp.id;
+	window.status = "Loading "+c9r.altext+"/"+xs.label;
+	c9r.loading = c9r.now();
+	c9r.img = jQuery("<img />").attr("src", src).attr(dim, val)
+		.attr("alt", c9r.altext)
+		.load(c9r.preloaded);
+	c9r.top = top;
+    },
+
+
+    //	Monitor the photo pool and display next photo at configured pace.
+    monitor: function ()
+    {
+	c9r.monitored = setTimeout(c9r.monitor, c9r.pace);
+	if (c9r.paused) { return; }
+
+	if (c9r.pending)
+	{
+		c9r.play_photo();
+	}
+	else
+	{
+		c9r.cycle++;
+	}
+    },
+
+
+    mouse_in: function (ev)
+    {
+	if (!c9r.dp) { return; }
+
+	c9r.paused = true;
+	if (c9r.monitored != undefined) {
+	    clearTimeout(c9r.monitored);
+	}
+	c9r.div.clearQueue();
+
+	jQuery.each(c9r.button_set, function (xk, xv)
+	{
+		var msg = c9r.p.getMsg(xk);
+		var bn = jQuery("<button id='c9r-"+xk+"' />").button(
+		{
+			icons: { primary: xv.icon },
+			label: msg,
+			title: msg,
+			text: false
+		}).css(
+		{
+			"background-color":	"#202020",
+			"opacity":		"0.5",
+			"position":		"absolute",
+			"left":			xv.left,
+			"top":			"10px",
+			"z-index":		"3"
+		}).click(xv.fn);
+		c9r.div.append(bn);
+	});
+    },
+
+
+    mouse_out: function (ev)
+    {
+	if (c9r.dp)
+	{
+		c9r.paused = false;
+		c9r.monitor();
+		c9r.div.remove(jQuery("[id^='#c9r-']"));
+	}
+    },
+
+
+    //	By default, display photos in random order.
+    //	THe algorithm:
+    //	o	Randomly take a photo, swap it to the c9r.cx location for display;
+    //	o	Record c9r.cx for return;
+    //	o	Reduce the c9r.cx pointer by 1. Loop back to end of pool if reached 0.
+    next: function ()
+    {
+	if (c9r.cx <= 0)
+	{
+		c9r.cx = c9r.photo.length;
+		if (c9r.cx < 1) { return -1; }
+	}
+	var xp = Math.floor(Math.random() * c9r.cx);
+	if (xp != --c9r.cx)
+	{
+		var tmp = c9r.photo[xp];
+		c9r.photo[xp] = x9r.r.photo[c9r.cx];
+		c9r.photo[c9r.cx] = tmp;
+	}
+	return xp;
+    },
+
+    //	Find index of next photo in the order of search result. Loops back to the
+    //	beginning of queue when the end is reached.
+    next_order: function ()
+    {
+	var xp = ++c9r.cx;
+	if (xp >= c9r.photo.length) { c9r.cx = xp = 0; }
+	return xp;
+    },
+
+
+    now: function ()
+    {
+	return (new Date()).getTime();
+    },
+
+
+    //	Callback function for c9r.img.onLoad().
+    play_photo: function ()
+    {
+	window.status = "Showing "+c9r.cx+": "+c9r.cp.owner+"/"+c9r.cp.id;
+	if (c9r.paused)
+	{
+		c9r.pending = 1;
+		return;
+	}
+
+	c9r.div.fadeOut(400, "linear", function ()
+	{
+		var xp = c9r.cp;
+		// <a href='http://www.flickr.com/photos/" + xp.owner + "/" + xp.id + "/' target='_flickr' style='border:0px;'>"
+		c9r.div.empty().append(c9r.img);
+		c9r.div.fadeIn(400, "swing", c9r.select_photo);
+		c9r.div.find("img").css("margin-top", c9r.top);
+		c9r.last = c9r.now();
+		c9r.pending = 0;
+		c9r.cycle = 0;
+		c9r.dp = xp;
+	});
+    },
+
+
+    preloaded: function ()
+    {
+	window.status = "Loading "+c9r.altext+" - Done. ("+(c9r.now()-c9r.loading)+" msec)";
+	if (c9r.cycle > 0) { c9r.play_photo(); }
+	else { c9r.pending = 1; }
+    },
+
+
+    //	Find index of previous photo in the order of search result. Loops back to the
+    //	end of queue if already at the beginning.
+    prev_order: function ()
+    {
+	if (--c9r.cx <= 0) { c9r.cx = c9r.photo.length+c9r.cx; }
+	return --c9r.cx;
+    },
+
+
+    //	Once a page is found, load a random image and start a slide show.
+    select_photo: function ()
+    {
+	if (c9r.div.css("display") == "none")
+	{
+		c9r.div.show();
+	}
+	c9r.div.css("opacity", "1");
+	if (c9r.total <= 0) { return; }	// No photo yet.
+
+	c9r.load_next_photo(c9r.next);
+    },
+
+
+    //	http://www.flickr.com/services/api/explore/flickr.photos.getInfo
+    show_photo_info: function (res)
+    {
+	var desc, box, info;
+
+	try
+	{
+		info = c9r.is_gadget ? res.data.photo : res.photo;
+		desc = "<a href='http://www.flickr.com/photos/"
+			+info.owner.nsid+"/"+info.id+"/'><h3>"
+			+(info.title._content || "Untitled")+"</h3></a>"
+			+info.description._content;
+	}
+	catch (err) { window.status = err.message; }
+
+	box = jQuery("<div class='c9r_desc' />").html(desc);
+	box.find("a").attr("target", "c9r_flickr");
+	c9r.div.append(box);
+    }
+};

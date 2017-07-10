@@ -1,0 +1,27 @@
+<html>
+<head>
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/vader/jquery-ui.css"
+	type="text/css" rel="Stylesheet" />
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+</head>
+<body>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+<script type="text/javascript" src="flickr-show.js"></script>
+<script type="text/javascript">
+	;
+	c9r.conf =		// UserPref items in the gadget
+	{
+		mykey:		"2961840042dccf8323bc6060dbd24a0b",
+		myorder:	true,
+		mytags:		"Kettering,2011",
+		mycolor:	"transparent",
+		mygroup:	"1819498@N20",
+		mypace:		10,
+		mysize:		"Auto",
+		mytop:		"4px"
+	};
+	jQuery(document).ready(c9r.flickr_show);
+</script>
+<div id="c9rFlickrShow" style="text-align: center; height: 100%; padding:0; margin:0; cursor: wait;">Loading . . .</div>
+</body>
+</html>

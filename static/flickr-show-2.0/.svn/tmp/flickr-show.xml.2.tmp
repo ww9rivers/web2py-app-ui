@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+  <ModulePrefs title="Flirkr Photo Show"
+	       title_url="http://www.9rivers.com/short-notes/firstgooglegadgetflickr-show"
+	       description="A Google gadget for displaying photographs on Flickr, with optional group and/or tags to specify the photo set for the show. To use this gadget, a Flickr API Key is needed which may be obtained from Flickr for free."
+	       author="Wei Wang" author_email="ww9rivers@gmail.com"
+	       author_aboutme="A network engineer working at University of Michigan Health System."
+	       author_link="http://www.9rivers.com/"
+	       author_photo="http://farm1.static.flickr.com/204/524366460_e86b604182.jpg"
+	       height="260" width="248">
+    <!-- license_link="license_en.txt" -->
+    <!-- Require feature="locked-domain" / This seems to cause "Invalid domain" error in Google Code wiki -->
+	<!-- base="http://flickr-show.googlecode.com/svn/branches/2.0" / -->
+    <!-- base="http://flickr-show.googlecode.com/svn/trunk" -->
+    <Locale messages="http://flickr-show.googlecode.com/svn/branches/2.0/ALL_ALL.xml"/>
+    <Locale lang="zh-cn" messages="http://flickr-show.googlecode.com/svn/branches/2.0/zh_cn_ALL.xml"/>
+  </ModulePrefs>
+  <UserPref name="mycolor" display_name="__MSG_bgcolor__" default_value="Transparent" datatype="enum" >
+    <EnumValue value="Transparent" display_value="__MSG_transparent__" />
+    <EnumValue value="Red" display_value="__MSG_red__" />
+    <EnumValue value="Aqua" display_value="__MSG_aqua__" />
+    <EnumValue value="Lime" display_value="__MSG_lime__" />
+    <EnumValue value="Yellow" display_value="__MSG_yellow__" />
+    <EnumValue value="Pink" display_value="__MSG_pink__" />
+    <EnumValue value="Orange" display_value="__MSG_orange__" />
+    <EnumValue value="White" display_value="__MSG_white__" />
+    <EnumValue value="Black" display_value="__MSG_black__" />
+  </UserPref>
+  <UserPref name="mygroup" display_name="__MSG_groupid__" datatype="string" />
+  <UserPref name="mykey" display_name="__MSG_apikey__" datatype="string" />
+  <UserPref name="mytags" display_name="__MSG_tags__" datatype="string" default_value="AHRP" />
+  <UserPref name="mysize" display_name="__MSG_photosize__" datatype="enum" default_value="Medium" >
+    <EnumValue value="Auto" display_value="__MSG_auto__" />
+    <EnumValue value="Square" display_value="__MSG_square__" />
+    <EnumValue value="Thumbnail" display_value="__MSG_thumbnail__" />
+    <EnumValue value="Small" display_value="__MSG_small__" />
+    <EnumValue value="Medium" display_value="__MSG_medium__" />
+    <EnumValue value="Original" display_value="__MSG_original__" />
+  </UserPref>
+  <UserPref name="mytop" display_name="__MSG_top__" datatype="string" default_value="Auto" />
+  <UserPref name="myorder" display_name="__MSG_order__" datatype="enum" default_value="0" >
+    <EnumValue value="0" display_value="__MSG_random__" />
+    <EnumValue value="1" display_value="__MSG_order__" />
+  </UserPref>
+  <UserPref name="mypace" display_name="__MSG_refresh_seconds__" datatype="enum" default_value="10" >
+    <EnumValue value="10" />
+    <EnumValue value="15" />
+    <EnumValue value="20" />
+    <EnumValue value="30" />
+  </UserPref>
+  <Content type="html"><![CDATA[
+<head>
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/vader/jquery-ui.css"
+	type="text/css" rel="Stylesheet" />
+
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript">
+	google.load("jquery", "1");
+	google.load("jqueryui", "1.8.17");
+</script>
+<script type="text/javascript" src="http://flickr-show.googlecode.com/svn/branches/2.0/flickr-show.js"></script>
+<script type="text/javascript">	gadgets.util.registerOnLoadHandler(c9r.flickr_show); </script>
+</head>
+<body>
+<div id="c9rFlickrShow" style="text-align: center; height: 100%; cursor: wait;">Loading . . .</div>
+</body>
+<!--
+ ALm6fM03B3qfr1jKIKHMVqLF-HAjPpC7b3bQuob8nG08q4cZh8NrqotZJ2DMbDmBJYVMMZKWL9JCyKx-OfST4hYgcAgTjVlf0DitqU-rUrYPHmME5mELDlEso9i6g-GK2BhM3dYRt4j0LaFAJq4hvBrO0FS9SCEotA==
+-->
+]]></Content>
+</Module>
